@@ -2,5 +2,6 @@
     <string name="app_name">Bookmaster General</string>
     <string name="textview">Search For Books!</string>
     <string name="button">Search</string>
-    <string name="hint">A Name</string>
+    <string name="hint">Book\'s Name</string>
+    <string name="activity_details">Book Details</string>
 </resources>

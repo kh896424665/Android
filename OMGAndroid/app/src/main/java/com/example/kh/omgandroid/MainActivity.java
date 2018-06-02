@@ -1,5 +1,6 @@
 
 package com.example.kh.omgandroid;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -44,9 +45,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String PREF_NAME = "name";
     private static final String QUERY_URL = "http://openlibrary.org/search.json?q=";
     SharedPreferences mSharedPreferences;
+    private ProgressDialog progressDialog;      //环形进度条
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //以下两行必须在super之后，在其他函数调用之前,,这个actionbar最终不显示，是不是用不了了
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        setProgressBarIndeterminateVisibility(false);   //不可用
+
         setContentView(R.layout.activity_main);
         mainTextView =(TextView) findViewById(R.id.main_textview);
 //        mainTextView.setText("Set in java");
@@ -61,25 +67,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mJSONAdapter = new JSONAdapter(this,getLayoutInflater());
         mainListView.setAdapter(mJSONAdapter);
 
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        setProgressBarIndeterminateVisibility(false);
     }
 
     @Override
     public void onClick(View v) {
 //        mainTextView.setText("Button pressed");
-        mainTextView.setText(mainEditText.getText().toString() + "is learning Android development!!!");
-        mNameList.add(mainEditText.getText().toString());
+//        mainTextView.setText(mainEditText.getText().toString() + "is learning Android development!!!");
+//        mNameList.add(mainEditText.getText().toString());
 //        mArrayAdapter.notifyDataSetChanged();
-        setShareIntent();
-        displayWelcome();
+//        setShareIntent();
+//        displayWelcome();
 
         queryBooks(mainEditText.getText().toString());    //获取用户输入内容并查找
+        mainTextView.setText("You are searching book 《"+mainEditText.getText().toString() + "》");
     }
     @Override
     public void onItemClick(AdapterView parent,View view,int position,long id){
         //position是列表第几个选项，从0开始计数
 //        Log.d("OMG_android",position+":"+mNameList.get(position));
+        JSONObject jsonObject = (JSONObject) mJSONAdapter.getItem(position);
+        String coverID = jsonObject.optString("cover_i","");
+
+        Intent detailIntent = new Intent(this,DetailActivity.class);
+        detailIntent.putExtra("coverID",coverID);
+
+        startActivity(detailIntent);
     }
      @Override
     public boolean onCreateOptionsMenu(Menu menu){
@@ -129,6 +141,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
          }
     }
     public void queryBooks(String searchString){
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("客官请稍等^-^");
+        progressDialog.show();
+
         //用查询字符串，查书
         String urlString = "";
         try{
@@ -138,19 +155,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(this,"ERROR:" + e.getMessage(),Toast.LENGTH_LONG).show();
         }
         AsyncHttpClient client = new AsyncHttpClient();//使用库创建一个访问网络的客户端
-        setProgressBarIndeterminateVisibility(true);
+//        setProgressBarIndeterminateVisibility(true);   //显示进度提示器
+
         client.get(QUERY_URL+urlString,   //组成查询url
                 new JsonHttpResponseHandler(){     //成功或失败的响应
                     public void onSuccess(JSONObject jsonObject){
-                        setProgressBarIndeterminateVisibility(false);
+//                        setProgressBarIndeterminateVisibility(false);
+                        progressDialog.dismiss();
                         Toast.makeText(getApplicationContext(),"Success!",Toast.LENGTH_LONG).show();
-//                        Log.d("omg android",jsonObject.toString());
+                        Log.d("omg android",jsonObject.toString());
                         mJSONAdapter.updateData(jsonObject.optJSONArray("docs"));
                     }
 
 
                     public void onFailure(int statusCode,Throwable throwable,JSONObject error){
-                        setProgressBarIndeterminateVisibility(false);
+//                        setProgressBarIndeterminateVisibility(false);
+                        progressDialog.dismiss();
                         Toast.makeText(getApplicationContext(),"Error:"+statusCode+""+throwable.getMessage(),Toast.LENGTH_LONG).show();
                         Log.e("omg android", statusCode+""+throwable.getMessage());
                     }

@@ -1,6 +1,7 @@
 package com.example.kh.omgandroid;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,7 +53,7 @@ public class JSONAdapter extends BaseAdapter{
             holder = new ViewHolder();
             holder.thumbnailImageView = (ImageView)convertView.findViewById(R.id.img_thumbnail);
             holder.titleTextView = (TextView)convertView.findViewById(R.id.text_title);
-            holder.autherTextView = (TextView)convertView.findViewById(R.id.text_auther);
+            holder.authorTextView = (TextView)convertView.findViewById(R.id.text_author);
 
             convertView.setTag(holder);
         }else {
@@ -64,28 +65,29 @@ public class JSONAdapter extends BaseAdapter{
             String imageID = jsonObject.optString("cover_i");
 
             String imageURL = IMAGE_URL_BASE+imageID+"-S.jpg";
+            Log.d("omgerr", imageURL);
             Picasso.with(mContext).load(imageURL).placeholder(R.mipmap.ic_books).into(holder.thumbnailImageView);
         }else{
             holder.thumbnailImageView.setImageResource(R.mipmap.ic_books);
         }
 
         String bookTitle = "";
-        String autherName = "";
+        String authorName = "";
         if (jsonObject.has("title")){
             bookTitle = jsonObject.optString("title");
         }
-        if (jsonObject.has("auther_name")){
-            autherName = jsonObject.optJSONArray("auther_name").optString(0);
+        if (jsonObject.has("author_name")){
+            authorName = jsonObject.optJSONArray("author_name").optString(0);
         }
         holder.titleTextView.setText(bookTitle);
-        holder.autherTextView.setText(autherName);
+        holder.authorTextView.setText(authorName);
         return convertView;
     }
 
     private static class ViewHolder{
         public ImageView thumbnailImageView;
         public TextView titleTextView;
-        public TextView autherTextView;
+        public TextView authorTextView;
 
     }
 
